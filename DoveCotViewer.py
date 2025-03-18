@@ -47,7 +47,7 @@ class DovecotMailViewer:
         self.scrollbar.pack(side=tk.RIGHT, fill="y")
         self.listbox.config(yscrollcommand=self.scrollbar.set)
 
-        # Mail View (Text Box)
+        # Mail View (Headers + Body)
         self.textbox = Text(self.mail_view_frame, wrap="word")
         self.textbox.pack(fill=tk.BOTH, expand=True)
 
@@ -111,7 +111,7 @@ class DovecotMailViewer:
                 print(f"Error reading {mail_file}: {e}")
 
     def display_email(self, event):
-        """Show email content when selected"""
+        """Show email headers and content when selected"""
         selection = self.listbox.curselection()
         if not selection:
             return
@@ -119,14 +119,30 @@ class DovecotMailViewer:
         mail_file = self.emails[selection[0]]
         try:
             mail = mailparser.parse_from_file(mail_file)
+
+            # Extract Headers
+            headers = {
+                "From": mail.from_,
+                "To": mail.to,
+                "Subject": mail.subject,
+                "Date": mail.date,
+                "CC": mail.cc,
+                "BCC": mail.bcc,
+                "Message-ID": mail.message_id,
+            }
+
+            headers_text = "\n".join(f"{key}: {value}" for key, value in headers.items() if value)
+
+            # Extract Body (Plain or HTML)
             email_body = mail.text_plain[0] if mail.text_plain else None
-            
             if not email_body and mail.text_html:
                 soup = BeautifulSoup(mail.text_html[0], "html.parser")
                 email_body = soup.get_text(separator="\n", strip=True)
 
             email_body = email_body or "(No Body Found)"
-            email_content = f"From: {mail.from_}\nTo: {mail.to}\nSubject: {mail.subject}\n\n{email_body}"
+
+            # Combine Headers + Body
+            email_content = f"{headers_text}\n\n{'-'*40}\n\n{email_body}"
 
             self.textbox.delete(1.0, tk.END)
             self.textbox.insert(tk.END, email_content)
