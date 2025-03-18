@@ -1,7 +1,8 @@
 import os
 import mailparser
-import tkinter as tk
-from tkinter import filedialog, Listbox, Scrollbar, Text, ttk
+import ttkbootstrap as ttk
+from ttkbootstrap import Style
+from tkinter import filedialog, Listbox
 from bs4 import BeautifulSoup
 from datetime import datetime
 
@@ -11,9 +12,12 @@ class DovecotMailViewer:
         self.root.title("Dovecot Mail Viewer")
         self.root.geometry("1000x600")
 
+        # Apply ttkbootstrap style
+        self.style = Style(theme="solar")
+
         # Main Paned Window (Resizable)
-        self.paned_window = ttk.PanedWindow(root, orient=tk.HORIZONTAL)
-        self.paned_window.pack(fill=tk.BOTH, expand=True)
+        self.paned_window = ttk.PanedWindow(root, orient="horizontal")
+        self.paned_window.pack(fill="both", expand=True)
 
         # Folder Structure Frame
         self.folder_frame = ttk.Frame(self.paned_window, width=200)
@@ -28,28 +32,28 @@ class DovecotMailViewer:
         self.paned_window.add(self.mail_view_frame, weight=3)
 
         # Load Maildir Button
-        self.load_button = tk.Button(root, text="Load Maildir", command=self.load_maildir)
-        self.load_button.pack(fill=tk.X)
+        self.load_button = ttk.Button(root, text="Load Maildir", command=self.load_maildir)
+        self.load_button.pack(fill="x")
 
         # Folder Structure (Treeview)
-        self.tree = ttk.Treeview(self.folder_frame)
+        self.tree = ttk.Treeview(self.folder_frame, show="tree")
         self.tree.heading("#0", text="Mail Folders", anchor="w")
-        self.tree.pack(fill=tk.BOTH, expand=True)
+        self.tree.pack(fill="both", expand=True)
         self.tree.bind("<<TreeviewSelect>>", self.load_mail_list)
 
-        # Mail Listbox
-        self.listbox = Listbox(self.mail_list_frame)
-        self.listbox.pack(fill=tk.BOTH, expand=True)
+        # Mail Listbox (Using tkinter Listbox)
+        self.listbox = Listbox(self.mail_list_frame, selectmode="browse")
+        self.listbox.pack(fill="both", expand=True)
         self.listbox.bind("<<ListboxSelect>>", self.display_email)
 
         # Scrollbar for Listbox
-        self.scrollbar = Scrollbar(self.mail_list_frame, orient="vertical", command=self.listbox.yview)
-        self.scrollbar.pack(side=tk.RIGHT, fill="y")
+        self.scrollbar = ttk.Scrollbar(self.mail_list_frame, orient="vertical", command=self.listbox.yview)
+        self.scrollbar.pack(side="right", fill="y")
         self.listbox.config(yscrollcommand=self.scrollbar.set)
 
         # Mail View (Headers + Body)
-        self.textbox = Text(self.mail_view_frame, wrap="word")
-        self.textbox.pack(fill=tk.BOTH, expand=True)
+        self.textbox = ttk.Text(self.mail_view_frame, wrap="word")
+        self.textbox.pack(fill="both", expand=True)
 
         # Storage
         self.maildir_path = None
@@ -79,7 +83,7 @@ class DovecotMailViewer:
         self.current_folder = selected_item[0]
         folder_path = os.path.join(self.maildir_path, self.current_folder)
 
-        self.listbox.delete(0, tk.END)
+        self.listbox.delete(0, "end")
         self.emails = []
 
         mail_files = []
@@ -105,7 +109,7 @@ class DovecotMailViewer:
                 subject = mail.subject or "(No Subject)"
                 display_text = f"[{mail_date}] {subject}"
 
-                self.listbox.insert(tk.END, display_text)
+                self.listbox.insert("end", display_text)
                 self.emails.append(mail_file)
             except Exception as e:
                 print(f"Error reading {mail_file}: {e}")
@@ -120,16 +124,8 @@ class DovecotMailViewer:
         try:
             mail = mailparser.parse_from_file(mail_file)
 
-            # Extract Headers
-            headers = {
-                "From": mail.from_,
-                "To": mail.to,
-                "Subject": mail.subject,
-                "Date": mail.date,
-                "CC": mail.cc,
-                "BCC": mail.bcc,
-                "Message-ID": mail.message_id,
-            }
+            # Extract all headers (including non-standard ones)
+            headers = mail.headers
 
             headers_text = "\n".join(f"{key}: {value}" for key, value in headers.items() if value)
 
@@ -144,13 +140,13 @@ class DovecotMailViewer:
             # Combine Headers + Body
             email_content = f"{headers_text}\n\n{'-'*40}\n\n{email_body}"
 
-            self.textbox.delete(1.0, tk.END)
-            self.textbox.insert(tk.END, email_content)
+            self.textbox.delete(1.0, "end")
+            self.textbox.insert("end", email_content)
         except Exception as e:
-            self.textbox.delete(1.0, tk.END)
-            self.textbox.insert(tk.END, f"Error reading email: {e}")
+            self.textbox.delete(1.0, "end")
+            self.textbox.insert("end", f"Error reading email: {e}")
 
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ttk.Window(themename="solar")
     app = DovecotMailViewer(root)
     root.mainloop()
