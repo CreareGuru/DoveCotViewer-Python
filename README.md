@@ -21,6 +21,5 @@
 ```bash
 pip install mail-parser beautifulsoup4 tkinter os
 python dovecot_mail_viewer.py
-
-
-![Screenshot 2025-03-18 094900](https://github.com/user-attachments/assets/9ed908a0-0650-4270-8d4f-a99d8a709388)
+```
+![Screenshot 2025-03-18 094900](https://github.com/user-attachments/assets/93e3eb10-9c22-40bd-b5cd-cefa9756c375)
