@@ -19,7 +19,7 @@
 
 ## 🛠 Installation  
 ```bash
-pip install mail-parser beautifulsoup4 tkinter os
+pip install mail-parser beautifulsoup4 tkinter ttkbootstrap os
 python dovecot_mail_viewer.py
 ```
 
